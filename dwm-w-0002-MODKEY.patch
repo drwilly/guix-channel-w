@@ -1,0 +1,25 @@
+From 82c613d716560a15372d8a31f18bfd81404c763f Mon Sep 17 00:00:00 2001
+From: drwilly <drwilly@drwilly.de>
+Date: Tue, 23 Jun 2020 13:13:19 +0200
+Subject: [PATCH 2/6] MODKEY
+
+---
+ config.def.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/config.def.h b/config.def.h
+index ea56e0d..307f46b 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -44,7 +44,7 @@ static const Layout layouts[] = {
+ };
+ 
+ /* key definitions */
+-#define MODKEY Mod1Mask
++#define MODKEY Mod4Mask
+ #define TAGKEYS(KEY,TAG) \
+ 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
+ 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
+-- 
+2.26.2
+

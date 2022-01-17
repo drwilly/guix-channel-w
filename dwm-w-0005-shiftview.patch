@@ -1,0 +1,53 @@
+From c11b8c17512c62ddbf1f2c7b745ccc8259720ddc Mon Sep 17 00:00:00 2001
+From: drwilly <drwilly@drwilly.de>
+Date: Tue, 23 Jun 2020 13:35:40 +0200
+Subject: [PATCH 5/6] shiftview
+
+---
+ dwm.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/dwm.c b/dwm.c
+index 4465af1..f35cace 100644
+--- a/dwm.c
++++ b/dwm.c
+@@ -234,6 +234,8 @@ static int xerrordummy(Display *dpy, XErrorEvent *ee);
+ static int xerrorstart(Display *dpy, XErrorEvent *ee);
+ static void zoom(const Arg *arg);
+ 
++static void shiftview(const Arg *arg);
++
+ /* variables */
+ static const char broken[] = "broken";
+ static char stext[256];
+@@ -2124,6 +2126,27 @@ zoom(const Arg *arg)
+ 	pop(c);
+ }
+ 
++/** Function to shift the current view to the left/right
++ *
++ * @param: "arg->i" stores the number of tags to shift right (positive value)
++ *          or left (negative value)
++ */
++void
++shiftview(const Arg *arg)
++{
++	Arg shifted;
++
++	if(arg->i > 0) // left circular shift
++		shifted.ui = (selmon->tagset[selmon->seltags] << arg->i)
++		   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i));
++
++	else // right circular shift
++		shifted.ui = selmon->tagset[selmon->seltags] >> (- arg->i)
++		   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i);
++
++	view(&shifted);
++}
++
+ int
+ main(int argc, char *argv[])
+ {
+-- 
+2.26.2
+

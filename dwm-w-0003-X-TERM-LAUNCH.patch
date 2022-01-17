@@ -1,0 +1,36 @@
+From 1ab071036914225d7157f13efdbbc2e945b3fc25 Mon Sep 17 00:00:00 2001
+From: drwilly <drwilly@drwilly.de>
+Date: Tue, 23 Jun 2020 13:19:09 +0200
+Subject: [PATCH 3/6] (X|TERM)LAUNCH
+
+---
+ config.def.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/config.def.h b/config.def.h
+index 307f46b..ea08d8e 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -51,13 +51,16 @@ static const Layout layouts[] = {
+ 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
+ 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
+ 
+-/* helper for spawning shell commands in the pre dwm-5.0 fashion */
+-#define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
++#define TERM "xterm"
++#define XLAUNCH(KEY, ...) \
++	{ MODKEY|Mod1Mask,		KEY,	spawn,	{.v = (const char*[]){ __VA_ARGS__, NULL }} }
++#define TERMLAUNCH(KEY, ...) \
++	{ MODKEY|Mod1Mask,		KEY,	spawn,	{.v = (const char*[]){ TERM, "-e", __VA_ARGS__, NULL }} }
+ 
+ /* commands */
+ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
+ static const char *dmenucmd[] = { "dmenu_run", "-b", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+-static const char *termcmd[]  = { "st", NULL };
++static const char *termcmd[]  = { TERM, NULL };
+ 
+ static Key keys[] = {
+ 	/* modifier                     key        function        argument */
+-- 
+2.26.2
+
