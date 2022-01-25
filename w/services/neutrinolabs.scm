@@ -1,11 +1,18 @@
 (define-module (w services neutrinolabs)
   #:use-module (w packages neutrinolabs)
+  #:use-module (gnu system pam)
   #:use-module (guix gexp)
   #:use-module (guix records)
   #:use-module (srfi srfi-1)
   #:export (xrdp-configuration
             xrdp-configuration?
             xrdp-service-type))
+
+(define (xrdp-pam-services config)
+  "Return a list of <pam-services> for xrdp with CONFIG."
+  (list (unix-pam-service
+         "xrdp"
+         #:login-uid? #t)))
 
 (define-record-type* <xrdp-configuration> xrdp-configuration
   make-xrdp-configuration
@@ -31,25 +38,24 @@
             (xrdp-configuration->scm #$config)))))))
 
 ;; based on guile-ini
-(define (write-section port section)
-  (let ((title (car section))
-        (props (cdr section)))
-    (when title
-      (format port "[~a]~%" title))
-    (for-each (lambda (prop)
-                (let ((key (car prop)))
-                  (cond ((string? key)
-                         (format port "~a=~a~%" key (cadr prop)))
-                        ((equal? key 'comment)
-                         (format port "; ~a~%" (cadr prop)))
-                        ((equal? key 'newline)
-                         (newline port))
-                        (else
-                         (error "Unknown property type" prop)))))
-              props))
-  (newline port))
-
 (define (scm->ini port data)
+  (define (write-section port section)
+    (let ((title (car section))
+          (props (cdr section)))
+      (when title
+        (format port "[~a]~%" title))
+      (for-each (lambda (prop)
+                  (let ((key (car prop)))
+                    (cond ((string? key)
+                           (format port "~a=~a~%" key (cadr prop)))
+                          ((equal? key 'comment)
+                           (format port "; ~a~%" (cadr prop)))
+                          ((equal? key 'newline)
+                           (newline port))
+                          (else
+                           (error "Unknown property type" prop)))))
+                props))
+    (newline port))
   (let* ((global (find (lambda (section)
                          (not (car section)))
                        data))
@@ -355,6 +361,7 @@
      ("#channel.xrdpvr" "true"))))
 
 (define (test)
+  "Run (test) to run test. :-)"
   (scm->ini
    (current-output-port)
    (xrdp-configuration->scm (xrdp-configuration))))

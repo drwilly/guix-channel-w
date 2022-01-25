@@ -33,12 +33,12 @@
          ;; auth backend
          "--enable-pam"
          "--enable-pam-config=unix"
-                                        ; "--enable-pamuserpass"
-                                        ; "--enable-kerberos"
+         ;; "--enable-pamuserpass"
+         ;; "--enable-kerberos"
          ;; neutrinordp
-                                        ; "--enable-neutrinordp"
+         ;; "--enable-neutrinordp"
          "--enable-jpeg"
-                                        ; "--enable-tjpeg"
+         ;; "--enable-tjpeg"
          ;; misc
          "--enable-ipv6"
          "--enable-vsock")))
@@ -53,7 +53,7 @@
            libx11
            libxfixes
            libxrandr
-                                        ; fuse
+           ;; fuse
            libjpeg-turbo
            linux-pam))
     (synopsis "Remote Desktop Protocol server")
