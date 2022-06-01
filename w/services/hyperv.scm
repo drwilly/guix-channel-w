@@ -26,6 +26,7 @@
 (define hv-fcopy-daemon-service-type
   (service-type
    (name 'fcopy)
+   (description "")
    (extensions
     (list (service-extension shepherd-root-service-type
                              hv-fcopy-daemon-shepherd-service)))))
@@ -42,6 +43,7 @@
 (define hv-kvp-daemon-service-type
   (service-type
    (name 'kvp)
+   (description "")
    (extensions
     (list (service-extension shepherd-root-service-type
                              hv-kvp-daemon-shepherd-service)))))
@@ -58,6 +60,7 @@
 (define hv-vss-daemon-service-type
   (service-type
    (name 'vss)
+   (description "")
    (extensions
     (list (service-extension shepherd-root-service-type
                              hv-vss-daemon-shepherd-service)))))
