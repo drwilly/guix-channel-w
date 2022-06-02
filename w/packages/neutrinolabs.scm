@@ -16,7 +16,7 @@
 (define-public xrdp
   (package
     (name "xrdp")
-    (version "0.9.17")
+    (version "0.9.19")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -24,7 +24,7 @@
                     "v" version "/" "xrdp-" version ".tar.gz"))
               (sha256
                (base32
-                "0zm7cbi0nhdlbfrisw4ikik00pwhmlq3p5jkg87vc58gdpfi7fan"))))
+                "1l4kbwzkjqsy71idxn42dzj2m1ji2mwic7k59yidgikmwhq7s0cl"))))
     (build-system gnu-build-system)
     (arguments
      '(#:configure-flags
