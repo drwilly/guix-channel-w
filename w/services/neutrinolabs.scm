@@ -47,7 +47,7 @@
 (define (xrdp-pam-services config)
   "Return a list of <pam-services> for xrdp with CONFIG."
   (list (unix-pam-service
-         "xrdp"
+         "xrdp-sesman"
          #:login-uid? #t)))
 
 (define xrdp-service-type
