@@ -8,12 +8,6 @@
             xrdp-configuration?
             xrdp-service-type))
 
-(define (xrdp-pam-services config)
-  "Return a list of <pam-services> for xrdp with CONFIG."
-  (list (unix-pam-service
-         "xrdp"
-         #:login-uid? #t)))
-
 (define-record-type* <xrdp-configuration> xrdp-configuration
   make-xrdp-configuration
   xrdp-configuration?
@@ -36,6 +30,35 @@
            (scm->ini
             port
             (xrdp-configuration->scm #$config)))))))
+
+;; (define (xrdp-shepherd-service config)
+;;   (list (shepherd-service
+;;          (documentation "XRDP server.")
+;;          (requirement '(syslogd loopback)) ; seems right
+;;          (provision '(xrdp))               ; I guess?
+
+;;          ;; TODO
+;;          (start)
+;;          ;; TODO
+;;          (stop))))
+
+(define (xrdp-pam-services config)
+  "Return a list of <pam-services> for xrdp with CONFIG."
+  (list (unix-pam-service
+         "xrdp"
+         #:login-uid? #t)))
+
+(define xrdp-service-type
+  (service-type (name 'xrdp)
+                (description "Run the XRDP server, @command{xrdp}.")
+                (extensions
+                 (list ;; (service-extension shepherd-root-service-type
+                  ;;                    xrdp-shepherd-service)
+                  (service-extension pam-root-service-type
+                                     xrdp-pam-services)
+                  ;; (service-extension activation-service-type
+                  ;;                    xrdp-activation)
+                  ))))
 
 ;; based on guile-ini
 (define (scm->ini port data)
