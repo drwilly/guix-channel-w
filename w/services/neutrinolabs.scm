@@ -1,5 +1,7 @@
 (define-module (w services neutrinolabs)
   #:use-module (w packages neutrinolabs)
+  #:use-module (gnu services)
+  #:use-module (gnu services shepherd)
   #:use-module (gnu system pam)
   #:use-module (guix gexp)
   #:use-module (guix records)
