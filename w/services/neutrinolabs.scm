@@ -60,7 +60,8 @@
                                      xrdp-pam-services)
                   ;; (service-extension activation-service-type
                   ;;                    xrdp-activation)
-                  ))))
+                  ))
+                (default-value #f)))
 
 ;; based on guile-ini
 (define (scm->ini port data)
