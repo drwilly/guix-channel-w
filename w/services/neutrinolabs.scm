@@ -33,16 +33,23 @@
             port
             (xrdp-configuration->scm #$config)))))))
 
-;; (define (xrdp-shepherd-service config)
-;;   (list (shepherd-service
-;;          (documentation "XRDP server.")
-;;          (requirement '(syslogd loopback)) ; seems right
-;;          (provision '(xrdp))               ; I guess?
+(define (xrdp-shepherd-service config)
+  (list (shepherd-service
+         (documentation "XRDP server.")
+         (requirement '(syslogd loopback)) ; seems right
+         (provision '(xrdp))               ; I guess?
 
-;;          ;; TODO
-;;          (start)
-;;          ;; TODO
-;;          (stop))))
+         ;; TODO
+         (start #~(lambda _ (and (zero? (system* #$(file-append xrdp "/sbin/xrdp")
+                                                 "-c"
+                                                 "/home/w/etc/xrdp/xrdp.ini"))
+                                 (zero? (system* #$(file-append xrdp "/sbin/xrdp-sesman")
+                                                 "-c"
+                                                 "/home/w/etc/xrdp/sesman.ini")))))
+         (stop #~(lambda _ (and (zero? (system* #$(file-append xrdp "/sbin/xrdp")
+                                                 "--kill"))
+                                (zero? (system* #$(file-append xrdp "/sbin/xrdp-sesman")
+                                                 "--kill"))))))))
 
 (define (xrdp-pam-services config)
   "Return a list of <pam-services> for xrdp with CONFIG."
@@ -54,13 +61,15 @@
   (service-type (name 'xrdp)
                 (description "Run the XRDP server, @command{xrdp}.")
                 (extensions
-                 (list ;; (service-extension shepherd-root-service-type
-                  ;;                    xrdp-shepherd-service)
-                  (service-extension pam-root-service-type
-                                     xrdp-pam-services)
-                  ;; (service-extension activation-service-type
-                  ;;                    xrdp-activation)
-                  ))
+                 (list (service-extension shepherd-root-service-type
+                                          xrdp-shepherd-service)
+                       (service-extension pam-root-service-type
+                                          xrdp-pam-services)
+                       ;; (service-extension activation-service-type
+                       ;;                    xrdp-activation)
+                       ))
+                ;; (compose concatenate)
+                ;; (extend TODO?)
                 (default-value #f)))
 
 ;; based on guile-ini
