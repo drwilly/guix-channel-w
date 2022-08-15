@@ -533,12 +533,10 @@
 
          (start #~(make-forkexec-constructor
                    (list #$(file-append xrdp "/sbin/xrdp")
-                         "-c" "/home/w/etc/xrdp/xrdp.ini")
+                         "--nodaemon"
+                         "--config" "/home/w/etc/xrdp/xrdp.ini")
                    #:pid-file "/var/run/xrdp.pid"))
-         ;;  TODO destructor does not seem to work. Why?
-         (stop #~(make-system-constructor
-                  (list #$(file-append xrdp "/sbin/xrdp")
-                        "--kill"))))
+         (stop #~(make-kill-destructor)))
         (shepherd-service
          (documentation "XRDP sesman server.")
          (requirement '(xrdp))
@@ -546,12 +544,10 @@
 
          (start #~(make-forkexec-constructor
                    (list #$(file-append xrdp "/sbin/xrdp-sesman")
-                         "-c" "/home/w/etc/xrdp/sesman.ini")
+                         "--nodaemon"
+                         "--config" "/home/w/etc/xrdp/sesman.ini")
                    #:pid-file "/var/run/xrdp-sesman.pid"))
-         ;;  TODO destructor does not seem to work. Why?
-         (stop #~(make-system-constructor
-                  (list #$(file-append xrdp "/sbin/xrdp-sesman")
-                        "--kill"))))))
+         (stop #~(make-kill-destructor)))))
 
 (define (xrdp-pam-services config)
   "Return a list of <pam-services> for xrdp with CONFIG."
