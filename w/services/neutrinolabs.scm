@@ -529,7 +529,7 @@
   (list (shepherd-service
          (documentation "XRDP server.")
          (requirement '(syslogd loopback)) ; seems right
-         (provision '(xrdp))               ; I guess?
+         (provision '(xrdp))
 
          (start #~(make-forkexec-constructor
                    (list #$(file-append xrdp "/sbin/xrdp")
