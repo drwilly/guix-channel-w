@@ -531,19 +531,27 @@
          (requirement '(syslogd loopback)) ; seems right
          (provision '(xrdp))               ; I guess?
 
-         (start #~(lambda _ (and (zero? (system* #$(file-append xrdp "/sbin/xrdp")
-                                                 "-c"
-                                                 #$(xrdp-configuration-file config)))
-                                 (zero? (system* #$(file-append xrdp "/sbin/xrdp-sesman")
-                                                 "-c"
-                                                 "/home/w/etc/xrdp/sesman.ini")))))
-         ;;  xrdp creates /var/run/xrdp.pid (xrdp-sesman: dito)
-         ;;  if present, xrdp refuses to start
+         (start #~(make-forkexec-constructor
+                   (list #$(file-append xrdp "/sbin/xrdp")
+                         "-c" "/home/w/etc/xrdp/xrdp.ini")
+                   #:pid-file "/var/run/xrdp.pid"))
          ;;  TODO destructor does not seem to work. Why?
-         (stop #~(lambda _ (and (zero? (system* #$(file-append xrdp "/sbin/xrdp")
-                                                 "--kill"))
-                                (zero? (system* #$(file-append xrdp "/sbin/xrdp-sesman")
-                                                 "--kill"))))))))
+         (stop #~(make-system-constructor
+                  (list #$(file-append xrdp "/sbin/xrdp")
+                        "--kill"))))
+        (shepherd-service
+         (documentation "XRDP sesman server.")
+         (requirement '(xrdp))
+         (provision '(xrdp-sesman))
+
+         (start #~(make-forkexec-constructor
+                   (list #$(file-append xrdp "/sbin/xrdp-sesman")
+                         "-c" "/home/w/etc/xrdp/sesman.ini")
+                   #:pid-file "/var/run/xrdp-sesman.pid"))
+         ;;  TODO destructor does not seem to work. Why?
+         (stop #~(make-system-constructor
+                  (list #$(file-append xrdp "/sbin/xrdp-sesman")
+                        "--kill"))))))
 
 (define (xrdp-pam-services config)
   "Return a list of <pam-services> for xrdp with CONFIG."
