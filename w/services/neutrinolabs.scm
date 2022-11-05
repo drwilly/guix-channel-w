@@ -1,5 +1,6 @@
 (define-module (w services neutrinolabs)
   #:use-module (w packages neutrinolabs)
+  #:use-module (gnu packages xorg)
   #:use-module (gnu services)
   #:use-module (gnu services shepherd)
   #:use-module (gnu system pam)
@@ -11,17 +12,28 @@
             xrdp-configuration?
             xrdp-service-type))
 
+(define (enum values)
+  (lambda (value)
+    (unless (memq value values)
+      (error "invalid value" value values))
+    (symbol->string value)))
+
 (define-record-type* <xrdp-configuration> xrdp-configuration
   make-xrdp-configuration
   xrdp-configuration?
+  this-xrdp-configuration
   (xrdp xrdp-configuration-xrdp
         (default xrdp))
   (port xrdp-configuration-port
         (default "3389"))
   (security-layer xrdp-configuration-security-layer
+                  (sanitize (enum '(tls rdp negotiate)))
                   (default 'negotiate))
   (crypt-level xrdp-configuration-crypt-level
+               (sanitize (enum '(none low medium high)))
                (default 'high))
+  (xorg xrdp-configuration-xorg
+        (default xorg-server))
   ;; This is an "escape hatch" to provide configuration that isn't yet
   ;; supported by this configuration record.
   (extra-content xrdp-configuration-extra-content
@@ -29,8 +41,8 @@
 
 (define-syntax ini-file-clause
   (syntax-rules ()
-    ((_ config (prop (getter parser)))
-     (string-append prop "=" (parser (getter config)) "\n"))
+    ((_ config (prop getter))
+     (string-append prop "=" (getter config) "\n"))
     ((_ config str)
      (string-append str "\n"))))
 (define-syntax-rule (ini-file config file clause ...)
@@ -40,16 +52,8 @@
     (#t "true")
     (#f "false")
     (_ (error "expected #t or #f, instead got:" x))))
-(define (enum x allowed)
-  (unless (memq x allowed)
-    (error "invalid value" x allowed))
-  (symbol->string x))
 
 (define (xrdp-configuration-file config)
-  (define (security-layer x)
-    (enum x '(tls rdp negotiate)))
-  (define (crypt-level x)
-    (enum x '(none low medium high fips)))
   (ini-file
    config "xrdp.ini"
    "[Globals]"
@@ -70,7 +74,7 @@
    ";   port=tcp6://:3389                           *:3389"
    ";   port=tcp6://{<any ipv6 format addr>}:3389   {FC00:0:0:0:0:0:0:1}:3389"
    ";   port=vsock://<cid>:<port>"
-   ("port" (xrdp-configuration-port identity))
+   ("port" xrdp-configuration-port)
 
    "; 'port' above should be connected to with vsock instead of tcp"
    "; use this only with number alone in port above"
@@ -89,11 +93,11 @@
    "#tcp_send_buffer_bytes=32768"
    "#tcp_recv_buffer_bytes=32768"
 
-   ("security_layer" (xrdp-configuration-security-layer security-layer))
+   ("security_layer" xrdp-configuration-security-layer)
 
    "; minimum security level allowed for client for classic RDP encryption"
    "; use tls_ciphers to configure TLS encryption"
-   ("crypt_level" (xrdp-configuration-crypt-level crypt-level))
+   ("crypt_level" xrdp-configuration-crypt-level)
 
    "; X.509 certificate and private key"
    "; openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 365"
@@ -533,7 +537,7 @@
          (start #~(make-forkexec-constructor
                    (list #$(file-append xrdp "/sbin/xrdp")
                          "--nodaemon"
-                         "--config" "/home/w/etc/xrdp/xrdp.ini")))
+                         "--config" #$(xrdp-configuration-file config))))
          (stop #~(make-kill-destructor)))
         (shepherd-service
          (documentation "XRDP sesman server.")
