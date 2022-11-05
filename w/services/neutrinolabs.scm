@@ -530,23 +530,19 @@
          (documentation "XRDP server.")
          (requirement '(syslogd loopback)) ; seems right
          (provision '(xrdp))
-
          (start #~(make-forkexec-constructor
                    (list #$(file-append xrdp "/sbin/xrdp")
                          "--nodaemon"
-                         "--config" "/home/w/etc/xrdp/xrdp.ini")
-                   #:pid-file "/var/run/xrdp.pid"))
+                         "--config" "/home/w/etc/xrdp/xrdp.ini")))
          (stop #~(make-kill-destructor)))
         (shepherd-service
          (documentation "XRDP sesman server.")
          (requirement '(xrdp))
          (provision '(xrdp-sesman))
-
          (start #~(make-forkexec-constructor
                    (list #$(file-append xrdp "/sbin/xrdp-sesman")
                          "--nodaemon"
-                         "--config" "/home/w/etc/xrdp/sesman.ini")
-                   #:pid-file "/var/run/xrdp-sesman.pid"))
+                         "--config" "/home/w/etc/xrdp/sesman.ini")))
          (stop #~(make-kill-destructor)))))
 
 (define (xrdp-pam-services config)
