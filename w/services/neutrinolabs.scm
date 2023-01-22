@@ -22,8 +22,6 @@
   make-xrdp-configuration
   xrdp-configuration?
   this-xrdp-configuration
-  (xrdp xrdp-configuration-xrdp
-        (default xrdp))
   (port xrdp-configuration-port
         (default "3389"))
   (security-layer xrdp-configuration-security-layer
@@ -33,29 +31,26 @@
                (sanitize (enum '(none low medium high)))
                (default 'high))
   (xorg xrdp-configuration-xorg
-        (default xorg-server))
-  ;; This is an "escape hatch" to provide configuration that isn't yet
-  ;; supported by this configuration record.
-  (extra-content xrdp-configuration-extra-content
-                 (default "")))
+        (default xorg-server)))
 
-(define-syntax ini-file-clause
-  (syntax-rules ()
-    ((_ config (prop getter))
-     (string-append prop "=" (getter config) "\n"))
-    ((_ config str)
-     (string-append str "\n"))))
-(define-syntax-rule (ini-file config file clause ...)
-  (plain-file file (string-append (ini-file-clause config clause) ...)))
 (define (truefalse x)
   (match x
     (#t "true")
     (#f "false")
     (_ (error "expected #t or #f, instead got:" x))))
 
+(define (ini-file fname config . clauses)
+  (plain-file fname (string-join (map
+                                  (lambda (clause)
+                                    (match clause
+                                      ((key getter) (string-append key "=" (getter config)))
+                                      ((? string? line) line)))
+                                  clauses)
+                                 "\n")))
+
 (define (xrdp-configuration-file config)
   (ini-file
-   config "xrdp.ini"
+   "xrdp.ini" config
    "[Globals]"
    "ini_version=1"           ; xrdp.ini file version number
    "fork=true"               ; fork a new process for each incoming connection
@@ -74,7 +69,7 @@
    ";   port=tcp6://:3389                           *:3389"
    ";   port=tcp6://{<any ipv6 format addr>}:3389   {FC00:0:0:0:0:0:0:1}:3389"
    ";   port=vsock://<cid>:<port>"
-   ("port" xrdp-configuration-port)
+   `("port" ,xrdp-configuration-port)
 
    "; 'port' above should be connected to with vsock instead of tcp"
    "; use this only with number alone in port above"
@@ -93,11 +88,11 @@
    "#tcp_send_buffer_bytes=32768"
    "#tcp_recv_buffer_bytes=32768"
 
-   ("security_layer" xrdp-configuration-security-layer)
+   `("security_layer" ,xrdp-configuration-security-layer)
 
    "; minimum security level allowed for client for classic RDP encryption"
    "; use tls_ciphers to configure TLS encryption"
-   ("crypt_level" xrdp-configuration-crypt-level)
+   `("crypt_level" ,xrdp-configuration-crypt-level)
 
    "; X.509 certificate and private key"
    "; openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 365"
@@ -367,15 +362,19 @@
    "#channel.rail=true"
    "#channel.xrdpvr=true"))
 
+  (define (xorg)
+    #~(list #$(file-append xorg-server "/bin/Xorg")
+          "-config" #$(file-append xrdp "/etc/X11/xrdp/xrdp.conf")
+          "-modulepath" #$(file-append xrdp "/lib/xorg/modules")))
 (define (sesman-configuration-file config)
   (ini-file
-   config "sesman.ini"
+   "sesman.ini" config
    "[Globals]"
    "ListenAddress=127.0.0.1"
    "ListenPort=3350"
    "EnableUserWindowManager=true"
    "; Give in relative path to user's home directory"
-   "UserWindowManager=startwm.sh"
+   "UserWindowManager=.xsession"
    "; Give in full path or relative path to /etc/xrdp"
    "DefaultWindowManager=startwm.sh"
    "; Give in full path or relative path to /etc/xrdp"
@@ -570,8 +569,8 @@
                 ;; (extend TODO?)
                 (default-value (xrdp-configuration))))
 
-(define (test)
-  "Run (test) to run test. :-)"
-  ;; (scm->ini
-  ;;  (current-output-port))
-  (xrdp-configuration-file (xrdp-configuration)))
+(define (test-xrdp)
+  (display (plain-file-content (xrdp-configuration-file (xrdp-configuration)))))
+
+(define (test-sesman)
+  (display (plain-file-content (sesman-configuration-file (xrdp-configuration)))))
