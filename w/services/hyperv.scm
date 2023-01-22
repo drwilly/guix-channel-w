@@ -19,14 +19,14 @@
          (provision '(fcopy))
          (documentation "Hyper-V Guest Service Interface.")
          (start #~(make-forkexec-contructor
-                   (list (string-append #$hyperv-integration-services "/usr/sbin/hv_fcopy_daemon"
+                   (list #$(file-append hyperv-integration-services "/usr/sbin/hv_fcopy_daemon"
                                         "--no-daemon"))))
          (stop #~(make-kill-destructor)))))
 
 (define hv-fcopy-daemon-service-type
   (service-type
    (name 'fcopy)
-   (description "")
+   (description "Run @command{hv_fcopy_daemon}, which provides an interface for the Hyper-V host to copy files to or from the virtual machine.")
    (extensions
     (list (service-extension shepherd-root-service-type
                              hv-fcopy-daemon-shepherd-service)))))
@@ -36,14 +36,14 @@
          (provision '(kvp))
          (documentation "Hyper-V Data-Exchange (Key-Value-Pair) Service.")
          (start #~(make-forkexec-contructor
-                   (list (string-append #$hyperv-integration-services "/usr/sbin/hv_kvp_daemon"
+                   (list #$(file-append hyperv-integration-services "/usr/sbin/hv_kvp_daemon"
                                         "--no-daemon"))))
          (stop #~(make-kill-destructor)))))
 
 (define hv-kvp-daemon-service-type
   (service-type
    (name 'kvp)
-   (description "")
+   (description "Run @command{hv_kvp_daemon}, which provides a way to exchange basic metadata between the virtual machine and the host.")
    (extensions
     (list (service-extension shepherd-root-service-type
                              hv-kvp-daemon-shepherd-service)))))
@@ -53,14 +53,14 @@
          (provision '(vss))
          (documentation "Hyper-V Volume Shadow Copy Requestor.")
          (start #~(make-forkexec-contructor
-                   (list (string-append #$hyperv-integration-services "/usr/sbin/hv_vss_daemon"
+                   (list #$(file-append hyperv-integration-services "/usr/sbin/hv_vss_daemon"
                                         "--no-daemon"))))
          (stop #~(make-kill-destructor)))))
 
 (define hv-vss-daemon-service-type
   (service-type
    (name 'vss)
-   (description "")
+   (description "Run @command{hv_vss_daemon}, which allows Volume Shadow Copy Service to back up the virtual machine with out shutting it down.")
    (extensions
     (list (service-extension shepherd-root-service-type
                              hv-vss-daemon-shepherd-service)))))
